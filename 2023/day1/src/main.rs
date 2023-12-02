@@ -48,7 +48,7 @@ fn spelled_out_digit(substr: &str, best_idx: &mut Option<usize>, reverse: bool) 
     }
 
     // Need to go recursive for rightmost find
-    match get_first_digit(&substr[best_idx.unwrap()+1..], reverse) {
+    match get_first_digit(&substr[best_idx.unwrap() + 1..], reverse) {
         Some(best_res) => Some(best_res),
         None => res,
     }
@@ -111,7 +111,7 @@ fn get_calibration_value(input: String) -> u32 {
         .fold(0, |acc, line| acc + get_calibration_value_of_line(line))
 }
 
-fn main() {
+fn read_input() -> String {
     let args: Vec<String> = env::args().collect();
 
     if args.len() != 2 {
@@ -122,13 +122,17 @@ fn main() {
     let input_path = args.get(1).unwrap();
 
     let open = fs::read_to_string(input_path);
-    let input = match open {
+    match open {
         Ok(input) => input,
         Err(err) => {
             eprintln!("Failed to open given file path. Error: {}", err);
             exit(1)
         }
-    };
+    }
+}
+
+fn main() {
+    let input = read_input();
 
     let calibration_value = get_calibration_value(input);
 
