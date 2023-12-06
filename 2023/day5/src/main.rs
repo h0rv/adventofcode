@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::{env, fs, process::exit};
 
 type Seed = usize;
@@ -161,8 +162,7 @@ fn get_lowest(input: &str) -> usize {
 
     println!("Maps populated!");
 
-    // let mut locations: Vec<usize> = vec![];
-    let mut lowest = usize::MAX;
+    let mut lowest_locations: Vec<usize> = vec![];
     for i in (0..seeds_split.len()).step_by(2) {
         dbg!(i);
         let (start, length): (usize, usize) = (
@@ -170,33 +170,34 @@ fn get_lowest(input: &str) -> usize {
             seeds_split.get(i + 1).unwrap().parse().unwrap(),
         );
         let end = start + length;
-        (start..end).into_iter().for_each(|seed| {
-            let location = get(
-                &humidity_to_location,
+        let lowest_location = (start..end)
+            .into_par_iter()
+            .map(|seed| {
                 get(
-                    &temperature_to_humidity,
+                    &humidity_to_location,
                     get(
-                        &light_to_temperature,
+                        &temperature_to_humidity,
                         get(
-                            &water_to_light,
+                            &light_to_temperature,
                             get(
-                                &fertilizer_to_water,
-                                get(&soil_to_fertilizer, get(&seed_to_soil, seed)),
+                                &water_to_light,
+                                get(
+                                    &fertilizer_to_water,
+                                    get(&soil_to_fertilizer, get(&seed_to_soil, seed)),
+                                ),
                             ),
                         ),
                     ),
-                ),
-            );
-            if location < lowest {
-                lowest = location;
-            }
-            // locations.push(location);
-
-            // println!("Seed {}'s location: {}", seed, location);
-        })
+                )
+            })
+            .min()
+            .unwrap();
+        lowest_locations.push(lowest_location);
     }
 
-    lowest
+    let lowest = lowest_locations.iter().min().unwrap();
+
+    *lowest
 }
 
 fn main() {
